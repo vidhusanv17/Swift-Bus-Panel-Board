@@ -84,6 +84,7 @@ export class MemStorage implements IStorage {
       const fullBus: Bus = {
         ...bus,
         id,
+        platform: bus.platform || null,
         lastUpdated: new Date()
       };
       this.buses.set(id, fullBus);
@@ -116,6 +117,8 @@ export class MemStorage implements IStorage {
       const fullAnnouncement: Announcement = {
         ...announcement,
         id,
+        isActive: announcement.isActive ?? 1,
+        priority: announcement.priority ?? 1,
         createdAt: new Date()
       };
       this.announcements.set(id, fullAnnouncement);
@@ -187,6 +190,7 @@ export class MemStorage implements IStorage {
     const bus: Bus = {
       ...insertBus,
       id,
+      platform: insertBus.platform || null,
       lastUpdated: new Date()
     };
     this.buses.set(id, bus);
@@ -221,6 +225,8 @@ export class MemStorage implements IStorage {
     const announcement: Announcement = {
       ...insertAnnouncement,
       id,
+      isActive: insertAnnouncement.isActive ?? 1,
+      priority: insertAnnouncement.priority ?? 1,
       createdAt: new Date()
     };
     this.announcements.set(id, announcement);
