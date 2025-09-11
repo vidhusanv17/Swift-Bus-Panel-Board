@@ -149,9 +149,6 @@ export default function BusDisplay() {
               </div>
               <div className="text-led-white text-lg md:text-xl led-text text-center" data-testid={`bus-destination-${bus.id}`}>
                 {bus.destination}
-                {bus.platform && (
-                  <div className="text-sm text-led-blue opacity-75">{bus.platform}</div>
-                )}
               </div>
               <div className={`${getStatusColor(bus.status)} text-lg md:text-xl led-text text-center font-bold`} data-testid={`bus-eta-${bus.id}`}>
                 {bus.etaMinutes} MIN
