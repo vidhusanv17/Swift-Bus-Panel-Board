@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Volume2, VolumeX, Wifi, Clock } from "lucide-react";
+import { Volume2, Wifi, Clock } from "lucide-react";
 import type { Bus, Announcement } from "@shared/schema";
 
 export default function BusDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [isTTSEnabled, setIsTTSEnabled] = useState(false);
-  const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
-  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const announcementTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch buses data
   const { data: buses = [], isLoading: busesLoading } = useQuery<Bus[]>({
@@ -38,101 +34,6 @@ export default function BusDisplay() {
       setLastUpdate(new Date());
     }
   }, [buses]);
-
-  // Text-to-Speech functionality with proper sequencing
-  const speakBilingualAnnouncement = useCallback((englishText: string, punjabiText: string) => {
-    if (!isTTSEnabled || !window.speechSynthesis) return;
-
-    // Create English utterance
-    const englishUtterance = new SpeechSynthesisUtterance(englishText);
-    englishUtterance.lang = 'en-IN';
-    englishUtterance.rate = 0.8;
-    englishUtterance.pitch = 1;
-    englishUtterance.volume = 0.8;
-    
-    // Create Punjabi utterance  
-    const punjabiUtterance = new SpeechSynthesisUtterance(punjabiText);
-    punjabiUtterance.lang = 'pa-IN';
-    punjabiUtterance.rate = 0.8;
-    punjabiUtterance.pitch = 1;
-    punjabiUtterance.volume = 0.8;
-
-    // Chain Punjabi after English completes
-    englishUtterance.onend = () => {
-      if (isTTSEnabled) {
-        speechRef.current = punjabiUtterance;
-        window.speechSynthesis.speak(punjabiUtterance);
-      }
-    };
-
-    // Move to next announcement after Punjabi completes
-    punjabiUtterance.onend = () => {
-      if (isTTSEnabled) {
-        setCurrentAnnouncementIndex(prev => (prev + 1) % announcements.length);
-      }
-    };
-    
-    speechRef.current = englishUtterance;
-    window.speechSynthesis.speak(englishUtterance);
-  }, [isTTSEnabled, announcements.length]);
-
-  const startAnnouncementCycle = useCallback(() => {
-    if (announcements.length === 0) return;
-
-    const speakCurrentAnnouncement = () => {
-      if (announcements.length > 0 && isTTSEnabled) {
-        const currentAnn = announcements[currentAnnouncementIndex];
-        speakBilingualAnnouncement(currentAnn.messageEnglish, currentAnn.messagePunjabi);
-      }
-    };
-
-    // Clear existing timer
-    if (announcementTimerRef.current) {
-      clearInterval(announcementTimerRef.current);
-    }
-
-    // Speak immediately 
-    speakCurrentAnnouncement();
-
-    // Continue cycling every 12 seconds
-    announcementTimerRef.current = setInterval(speakCurrentAnnouncement, 12000);
-  }, [announcements, currentAnnouncementIndex, isTTSEnabled, speakBilingualAnnouncement]);
-
-  const toggleTTS = useCallback(() => {
-    setIsTTSEnabled(prev => {
-      if (prev) {
-        // Stopping TTS - cancel speech and clear timers
-        window.speechSynthesis.cancel();
-        if (announcementTimerRef.current) {
-          clearInterval(announcementTimerRef.current);
-          announcementTimerRef.current = null;
-        }
-      }
-      return !prev;
-    });
-  }, []);
-
-  // Handle TTS announcement cycle when announcements change
-  useEffect(() => {
-    if (isTTSEnabled && announcements.length > 0) {
-      startAnnouncementCycle();
-    }
-    return () => {
-      if (announcementTimerRef.current) {
-        clearInterval(announcementTimerRef.current);
-      }
-    };
-  }, [announcements, isTTSEnabled, startAnnouncementCycle]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      window.speechSynthesis.cancel();
-      if (announcementTimerRef.current) {
-        clearInterval(announcementTimerRef.current);
-      }
-    };
-  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -269,23 +170,9 @@ export default function BusDisplay() {
       {/* Announcement Ticker */}
       <div className="fixed bottom-0 left-0 right-0 bg-black border-t-2 border-led-blue" data-testid="announcement-ticker">
         <div className="flex items-center p-4">
-          {/* Interactive TTS Speaker Icon */}
+          {/* TTS Speaker Icon */}
           <div className="flex-shrink-0 mr-4">
-            <button
-              onClick={toggleTTS}
-              className={`p-2 rounded-full transition-all duration-300 ${
-                isTTSEnabled 
-                  ? 'bg-led-blue/20 border border-led-blue' 
-                  : 'bg-gray-800 border border-gray-600 hover:border-led-blue hover:bg-led-blue/10'
-              }`}
-              data-testid="tts-toggle-button"
-            >
-              {isTTSEnabled ? (
-                <Volume2 className="text-led-blue text-2xl led-glow animate-pulse" data-testid="tts-speaker-icon" />
-              ) : (
-                <VolumeX className="text-gray-400 text-2xl" data-testid="tts-muted-icon" />
-              )}
-            </button>
+            <Volume2 className="text-led-blue text-2xl led-glow animate-pulse" data-testid="tts-speaker-icon" />
           </div>
 
           {/* Scrolling Text Container */}
@@ -294,15 +181,6 @@ export default function BusDisplay() {
               {createAnnouncementText()}
             </div>
           </div>
-          
-          {/* TTS Status Indicator */}
-          {isTTSEnabled && (
-            <div className="flex-shrink-0 ml-4">
-              <span className="text-led-green text-xs led-text animate-pulse" data-testid="tts-status">
-                TTS ON
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
