@@ -34,48 +34,42 @@ export class MemStorage implements IStorage {
         route: "LUDHIANA → AMRITSAR",
         destination: "Amritsar",
         etaMinutes: 5,
-        status: "on-time",
-        platform: "Platform 2"
+        status: "on-time"
       },
       {
         busNumber: "PRTC-45",
         route: "JALANDHAR → PATIALA",
         destination: "Patiala",
         etaMinutes: 12,
-        status: "arriving",
-        platform: "Platform 1"
+        status: "arriving"
       },
       {
         busNumber: "VOLVO-21",
         route: "BATHINDA → CHANDIGARH",
         destination: "Chandigarh",
         etaMinutes: 25,
-        status: "delayed",
-        platform: "Platform 3"
+        status: "delayed"
       },
       {
         busNumber: "PB08-2456",
         route: "MOHALI → KAPURTHALA",
         destination: "Kapurthala",
         etaMinutes: 8,
-        status: "on-time",
-        platform: "Platform 4"
+        status: "on-time"
       },
       {
         busNumber: "PRTC-78",
         route: "FEROZEPUR → GURDASPUR",
         destination: "Gurdaspur",
         etaMinutes: 15,
-        status: "arriving",
-        platform: "Platform 1"
+        status: "arriving"
       },
       {
         busNumber: "VOLVO-33",
         route: "MOGA → HOSHIARPUR",
         destination: "Hoshiarpur",
         etaMinutes: 3,
-        status: "on-time",
-        platform: "Platform 2"
+        status: "on-time"
       }
     ];
 
@@ -92,8 +86,8 @@ export class MemStorage implements IStorage {
     // Initialize announcements
     const sampleAnnouncements: InsertAnnouncement[] = [
       {
-        messageEnglish: "Next bus to Chandigarh will arrive at Platform 2 in 10 minutes",
-        messagePunjabi: "ਅਗਲਾ ਬੱਸ ਚੰਡੀਗੜ੍ਹ ਲਈ 10 ਮਿੰਟ ਵਿੱਚ ਪਲੇਟਫਾਰਮ 2 ਤੇ ਆਵੇਗਾ",
+        messageEnglish: "Next bus to Chandigarh will arrive in 10 minutes",
+        messagePunjabi: "ਅਗਲਾ ਬੱਸ ਚੰਡੀਗੜ੍ਹ ਲਈ 10 ਮਿੰਟ ਵਿੱਚ ਆਵੇਗਾ",
         isActive: 1,
         priority: 1
       },
@@ -167,8 +161,7 @@ export class MemStorage implements IStorage {
     const newBus: InsertBus = {
       ...randomRoute,
       etaMinutes: Math.floor(Math.random() * 30) + 5, // 5-35 minutes
-      status: "arriving",
-      platform: `Platform ${Math.floor(Math.random() * 4) + 1}`
+      status: "arriving"
     };
 
     this.createBus(newBus);

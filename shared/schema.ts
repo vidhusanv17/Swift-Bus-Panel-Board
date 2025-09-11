@@ -10,7 +10,6 @@ export const buses = pgTable("buses", {
   destination: text("destination").notNull(),
   etaMinutes: integer("eta_minutes").notNull(),
   status: text("status").notNull(), // 'on-time', 'arriving', 'delayed'
-  platform: text("platform"),
   lastUpdated: timestamp("last_updated").defaultNow()
 });
 
@@ -28,8 +27,7 @@ export const insertBusSchema = createInsertSchema(buses).pick({
   route: true,
   destination: true,
   etaMinutes: true,
-  status: true,
-  platform: true
+  status: true
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
