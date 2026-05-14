@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Volume2, Wifi, Clock } from "lucide-react";
+import { Volume2, VolumeX, Wifi, Clock } from "lucide-react";
 import type { Bus, Announcement } from "@shared/schema";
 
 export default function BusDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [isTTSPlaying, setIsTTSPlaying] = useState(false);
+  const [ttsSupported, setTTSSupported] = useState(false);
 
   // Fetch buses data
   const { data: buses = [], isLoading: busesLoading } = useQuery<Bus[]>({
@@ -34,6 +36,56 @@ export default function BusDisplay() {
       setLastUpdate(new Date());
     }
   }, [buses]);
+
+  // Check TTS support and initialize
+  useEffect(() => {
+    setTTSSupported('speechSynthesis' in window);
+  }, []);
+
+  // TTS functionality
+  const speakAnnouncement = () => {
+    if (!ttsSupported) {
+      console.warn('Text-to-speech not supported in this browser');
+      return;
+    }
+
+    // Stop any current speech
+    speechSynthesis.cancel();
+
+    if (isTTSPlaying) {
+      setIsTTSPlaying(false);
+      return;
+    }
+
+    const announcementText = createAnnouncementText();
+    
+    // Split text by language delimiter and speak English part
+    const englishText = announcementText.split(' | ').filter((_, index) => index % 2 === 1).join('. ') ||
+                       announcementText.split(' | ')[0] || announcementText;
+    
+    const utterance = new SpeechSynthesisUtterance(englishText);
+    utterance.rate = 0.8; // Slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 0.8;
+    
+    // Set language to English for better pronunciation
+    utterance.lang = 'en-US';
+    
+    utterance.onstart = () => {
+      setIsTTSPlaying(true);
+    };
+    
+    utterance.onend = () => {
+      setIsTTSPlaying(false);
+    };
+    
+    utterance.onerror = () => {
+      setIsTTSPlaying(false);
+      console.error('TTS error occurred');
+    };
+    
+    speechSynthesis.speak(utterance);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -169,7 +221,29 @@ export default function BusDisplay() {
         <div className="flex items-center p-4">
           {/* TTS Speaker Icon */}
           <div className="flex-shrink-0 mr-4">
-            <Volume2 className="text-led-blue text-2xl led-glow animate-pulse" data-testid="tts-speaker-icon" />
+            <button
+              onClick={speakAnnouncement}
+              disabled={!ttsSupported}
+              className={`text-2xl led-glow transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isTTSPlaying 
+                  ? 'text-led-green animate-pulse' 
+                  : 'text-led-blue hover:text-led-white'
+              }`}
+              data-testid="tts-speaker-button"
+              title={
+                !ttsSupported 
+                  ? 'Text-to-speech not supported' 
+                  : isTTSPlaying 
+                    ? 'Stop announcement' 
+                    : 'Play announcement'
+              }
+            >
+              {isTTSPlaying ? (
+                <VolumeX className="animate-pulse" />
+              ) : (
+                <Volume2 className={!isTTSPlaying ? 'animate-pulse' : ''} />
+              )}
+            </button>
           </div>
 
           {/* Scrolling Text Container */}
